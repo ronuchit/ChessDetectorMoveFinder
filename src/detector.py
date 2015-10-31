@@ -64,11 +64,9 @@ while(True):
     row_counts = get_rows(edges)
     max_row_indexes = get_sorted_indexes(row_counts)
     curr_index = max_row_indexes[0]
-    edges[curr_index, :] = 122
-    rows_changed = [curr_index]
-    num_rows_changed = 1
+    rows_changed = []
+    num_rows_changed = 0
     for idx, row_idx in enumerate(max_row_indexes):
-        #actual_row = row_counts[row_idx]
         in_range = False
         for r_changed in rows_changed:
             if (row_idx < r_changed+25 and row_idx > r_changed-25):
@@ -77,19 +75,16 @@ while(True):
             edges[row_idx, :] = 122
             rows_changed.append(row_idx)
             num_rows_changed += 1
-            if (num_rows_changed > 9):
+            if (num_rows_changed >= 9):
                 break
 
-    #max_row_index = np.argmax(row_counts)
     rotated = np.rot90(edges)
     col_counts = get_rows(rotated)
     max_row_indexes = get_sorted_indexes(col_counts)
     curr_index = max_row_indexes[0]
-    edges[:, w-curr_index] = 122
-    rows_changed = [curr_index]
-    num_rows_changed = 1
+    rows_changed = []
+    num_rows_changed = 0
     for idx, row_idx in enumerate(max_row_indexes):
-        #actual_row = row_counts[row_idx]
         in_range = False
         for r_changed in rows_changed:
             if (row_idx < r_changed+25 and row_idx > r_changed-25):
@@ -98,13 +93,9 @@ while(True):
             edges[:, w-row_idx] = 122
             rows_changed.append(row_idx)
             num_rows_changed += 1
-            if (num_rows_changed > 9):
+            if (num_rows_changed >= 9):
                 break
 
-    #max_col_index = np.argmax(col_counts)
-    h, w = edges.shape
-    #edges[max_row_index, :] = 255
-    #edges[:, w-max_col_index] = 255
     plt.imshow(edges)
     plt.show()
     pdb.set_trace()
