@@ -13,6 +13,8 @@ BOARD_DIM = 8
 class IllegalMoveException(Exception):
         pass
 
+class BadBoardStateException(Exception):
+        pass
 
 class Game(object):
     def __init__(self, win, stockfish_path, stockfish_timeout=2000):
@@ -20,6 +22,7 @@ class Game(object):
         self.board = pychess.Board()
         self.engine = pychess_uci.popen_engine(stockfish_path)
         self.engine.uci()
+        self.engine.setoption({"UCI_Chess960": True})
         self.stockfish_timeout = stockfish_timeout
 
     def _best_move(self):
@@ -64,15 +67,24 @@ BLACK_PYCH = False
 # reversed board of string representation!
 initial_state = np.array( 
         [[1,1,1,1,1,1,1,1],
-        [1,1,1,1,1,1,1,0],
-        [0,0,0,0,0,0,0,1],
+        [1,1,1,1,1,0,1,1],
+        [0,0,0,0,0,1,0,0],
         [0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0],
         [2,2,2,2,2,2,2,2],
         [2,2,2,2,2,2,2,2]])
 
-#TODO: castling!!!
+bad_state = np.array( 
+        [[1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,0,1,1],
+        [0,0,0,0,0,1,0,0],
+        [0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,2,0,0],
+        [2,2,2,2,2,0,2,2],
+        [2,2,2,2,2,2,2,2]])
+
 def changed_positions(cv_board, pychess_board):
     new_filled = []
     new_empty = [] 
@@ -84,6 +96,7 @@ def changed_positions(cv_board, pychess_board):
             old_value = pychess_board.piece_at(offset+j)
             if old_value:
                 old_value = old_value.color
+            #old_fill_color = None
             new_value = cv_board[i,j]
             changed = changed_val(new_value, old_value)
             if changed:
@@ -93,6 +106,8 @@ def changed_positions(cv_board, pychess_board):
                     new_empty.append((i,j))
                 else:
                     new_filled.append((i,j))
+                    #if new_value != old_fill_color:
+                        #return False
     return (new_empty, new_filled, captured_pieces) 
 
 def changed_val(cv_val, pychess_val):
@@ -117,15 +132,21 @@ def np_to_uci(coords):
     return "%s%s" % (col, row)
 
 def obtain_moves(cv_board, pychess_board):
-    (new_filled, new_empty, captured_pieces) = changed_positions(cv_board, pychess_board)
-   
+    (new_empty, new_filled, captured_pieces) = changed_positions(cv_board, pychess_board)
+
     new_filled = map(lambda np: np_to_uci(np), new_filled)
     new_empty = map(lambda np: np_to_uci(np), new_empty)
+
+    print new_empty
+    print new_filled
+    print captured_pieces
   
     if len(new_filled) > 1:
-        handle_castle(new_filled, new_empty)
+        return handle_castle(new_filled)
 
-    moves = zip(new_filled, new_empty)
+    moves = zip(new_empty, new_filled)
+    if not moves:
+        raise BadBoardStateException("Improper board delta")
     # string bullshit
     move_str = ""
     for move in moves: 
@@ -134,19 +155,27 @@ def obtain_moves(cv_board, pychess_board):
     return move_str
 
 def handle_castle(new_filled):
-    moves = zip(new_filled, new_empty)
-    # string bullshit
-    move_str = ""
-    for move in moves: 
-        for m in move:
-            move_str += m
-    return move_str
+    # Kingside castle
+    if 'g8' in new_filled:
+        return 'e8h8'
+    elif 'g1' in new_filled:
+        return 'e1h1'
+    # Queenside castle
+    if 'c8' in new_filled:
+        return 'e8a8'
+    elif 'c1' in new_filled:
+        return 'e1a1'
+    raise BadBoardStateException("Two moves") 
 
-
-
+#reject until passes
 chess = Game(win=True, stockfish_path=BASE_PATH + STOCKFISH_PATH)
 move = obtain_moves(initial_state, chess.board)
 chess._receive_move(move)
+print "First pawn move"
+print chess.board
+move = obtain_moves(bad_state, chess.board)
+chess._receive_move(move)
+print "Bad error pawn move"
 print chess.board
 
 
