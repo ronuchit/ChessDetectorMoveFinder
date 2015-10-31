@@ -4,8 +4,8 @@ import string
 import chess as pychess
 import chess.uci as pychess_uci
 
-BASE_PATH = "/Users/shaunsingh/Documents/BerkeleyAcademics/Fall2015/csua/ChessDetectorMoveFinder"
-STOCKFISH_PATH = "/lib/stockfish-6-mac/src/stockfish"
+BASE_PATH = ".."
+STOCKFISH_PATH = "/lib/stockfish-6-linux/src/stockfish"
 TIMEOUT = 2000
 
 BOARD_DIM = 8
@@ -137,16 +137,17 @@ def obtain_moves(cv_board, pychess_board):
     new_filled = map(lambda np: np_to_uci(np), new_filled)
     new_empty = map(lambda np: np_to_uci(np), new_empty)
 
-    print new_empty
-    print new_filled
-    print captured_pieces
+    # print new_empty
+    # print new_filled
+    # print captured_pieces
   
     if len(new_filled) > 1:
         return handle_castle(new_filled)
 
     moves = zip(new_empty, new_filled)
     if not moves:
-        raise BadBoardStateException("Improper board delta")
+        print "No move detected!"
+        return None
     # string bullshit
     move_str = ""
     for move in moves: 
@@ -165,18 +166,19 @@ def handle_castle(new_filled):
         return 'e8a8'
     elif 'c1' in new_filled:
         return 'e1a1'
-    raise BadBoardStateException("Two moves") 
+    print "Two moves!"
+    return None
 
 #reject until passes
-chess = Game(win=True, stockfish_path=BASE_PATH + STOCKFISH_PATH)
-move = obtain_moves(initial_state, chess.board)
-chess._receive_move(move)
-print "First pawn move"
-print chess.board
-move = obtain_moves(bad_state, chess.board)
-chess._receive_move(move)
-print "Bad error pawn move"
-print chess.board
+# chess = Game(win=True, stockfish_path=BASE_PATH + STOCKFISH_PATH)
+# move = obtain_moves(initial_state, chess.board)
+# chess._receive_move(move)
+# print "First pawn move"
+# print chess.board
+# move = obtain_moves(bad_state, chess.board)
+# chess._receive_move(move)
+# print "Bad error pawn move"
+# print chess.board
 
 
 def play_game():
@@ -193,5 +195,3 @@ def play_game():
         print(chess.board)
     
 #play_game()
-   
-
