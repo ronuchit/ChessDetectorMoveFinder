@@ -7,7 +7,6 @@ from scipy import misc
 import pdb
 import unrotate
 
-
 SECONDS_TO_WAIT = 3
 plt.rcParams['image.cmap'] = 'gray' # set default image to grayscale
 
@@ -112,6 +111,5 @@ while(True):
     plt.imshow(edges)
     plt.show()
 
-    pdb.set_trace()
     if SLEEP: # just cause i dont want it to sleep each time i test right now
         time.sleep(SECONDS_TO_WAIT)
