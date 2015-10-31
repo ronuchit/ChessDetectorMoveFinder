@@ -52,7 +52,7 @@ def unrotate(image):
 
         num_selected += 1
         # draw contour for debugging
-        cv2.drawContours(image, contours, i, colors[i % 3], 3)
+        #cv2.drawContours(image, contours, i, colors[i % 3], 3)
         # cv2.rectangle(image, (low_y, low_x), (high_y, high_x), colors[i % 3])
         rect_corners = cv2.cv.BoxPoints(cv2.minAreaRect(c))
         rect_corners = sorted(rect_corners, key=lambda r: r[1])[:2]
