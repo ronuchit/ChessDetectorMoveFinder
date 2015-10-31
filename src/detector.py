@@ -4,7 +4,6 @@ import scipy
 import cv2
 from matplotlib import pyplot as plt
 from scipy import misc
-import pdb
 
 SECONDS_TO_WAIT = 3
 plt.rcParams['image.cmap'] = 'gray' # set default image to grayscale
@@ -32,7 +31,6 @@ def get_rows(edges,window_size=2):
     for i in xrange(0, h):
         count = get_counts(edges, i, h, window_size)
         row_counts.append(count)
-    pdb.set_trace()
     return row_counts
 
 # given images
@@ -54,11 +52,11 @@ while(True):
     #plt.imshow(image)
     #plt.show()
     contours, hierarchy = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    pdb.set_trace()
+    ind = max(range(len(contours)), key=lambda i: cv2.contourArea(contours[i]))
     test = cv2.drawContours(image, contours, -1, (0, 255, 0), 3)
-    cv2.imshow('image', image)
-    cv2.waitKey(0)
+    # import IPython; IPython.embed()
+    plt.imshow(edges)
+    plt.show()
 
-    pdb.set_trace()
     if SLEEP: # just cause i dont want it to sleep each time i test right now
         time.sleep(SECONDS_TO_WAIT)
