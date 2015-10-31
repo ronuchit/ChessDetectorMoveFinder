@@ -14,6 +14,7 @@ IMAGE_FOLDER = "../images/samples/"
 
 img_filename = IMAGE_FOLDER + "pic1_cropped.png"
 SLEEP = False
+GRAPH = False
 L_THRESH = 80
 H_THRESH = 200
 
@@ -85,24 +86,19 @@ while(True):
     rows_changed = get_rows_changed(max_row_indexes)
 
     edges = np.rot90(image_unrotated)
-    #image_unrotated = np.rot90(image_unrotated)
     edges = get_vert_grad(edges)
 
-####
     col_counts = get_rows(edges)
     max_col_indexes = sorted(range(len(col_counts)), key = lambda k: col_counts[k], reverse=True)
-    pdb.set_trace()
-    print col_counts
-    print max_col_indexes
     cols_changed = get_rows_changed(max_col_indexes, True)
     edges = np.rot90(edges, k=3)
-    plt.figure()
-    plt.subplot(1,2,1)
-    plt.imshow(edges)
-    plt.subplot(1,2,2)
-    plt.imshow(image_unrotated)
-    plt.show()
-    pdb.set_trace()
+    if GRAPH:
+        plt.figure()
+        plt.subplot(1,2,1)
+        plt.imshow(edges)
+        plt.subplot(1,2,2)
+        plt.imshow(image_unrotated)
+        plt.show()
 
     if SLEEP: # just cause i dont want it to sleep each time i test right now
         time.sleep(SECONDS_TO_WAIT)
