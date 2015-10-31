@@ -51,10 +51,10 @@ def unrotate(image):
         angles.append(np.arctan2(rect_corners[1][1] - rect_corners[0][1], rect_corners[1][0] - rect_corners[0][0]))
     try:
         cpy_image = cpy_image[min_x-10:max_x+10, min_y-10:max_y+10]
-    except IndexError as e:
-        print "Index error on unrotate!!"
+        cpy_image = misc.imrotate(cpy_image, np.average(angles) / (2 * np.pi) * 360)
+    except:
+        print "Error on unrotate!!"
         return None
-    cpy_image = misc.imrotate(cpy_image, np.average(angles) / (2 * np.pi) * 360)
     return cpy_image
 
 if __name__ == "__main__":
