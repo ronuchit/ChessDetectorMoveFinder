@@ -15,8 +15,8 @@ img_filename = IMAGE_FOLDER + "pic4.png"
 DARK_COLOR = [77, 92, 84] # TODO: pick it manually
 DARK_THRESHOLD = 100
 
-def unrotate():
-    image = cv2.imread(img_filename)
+def unrotate(image):
+    #image = cv2.imread(img_filename)
     image = cv2.medianBlur(image, 5)
     subbed = np.linalg.norm(image - DARK_COLOR, axis=2)
     image[:, :] = [255, 255, 255]

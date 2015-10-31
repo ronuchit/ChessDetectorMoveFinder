@@ -5,7 +5,7 @@ import cv2
 from matplotlib import pyplot as plt
 from scipy import misc
 import pdb
-import unrotate
+import unrotate as ur
 
 SECONDS_TO_WAIT = 3
 plt.rcParams['image.cmap'] = 'gray' # set default image to grayscale
@@ -53,12 +53,9 @@ def get_hough_transform_lines(image, edges):
 
 # given images
 while(True):
-    #image = scipy.misc.imread(img_filename)
     image = cv2.imread(img_filename)
-    image = cv2.medianBlur(image, 5)
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    gray = np.float32(gray)
-    edges = cv2.Canny(image, L_THRESH, H_THRESH)
+    image_unrotated = ur.unrotate(image)
+    edges = cv2.Canny(image_unrotated, L_THRESH, H_THRESH)
 
     #image, edges = get_hough_transform_lines(image, edges)
 
@@ -67,7 +64,7 @@ while(True):
     row_counts = get_rows(edges)
     max_row_indexes = get_sorted_indexes(row_counts)
     curr_index = max_row_indexes[0]
-    edges[curr_index, :] = 255
+    edges[curr_index, :] = 122
     rows_changed = [curr_index]
     num_rows_changed = 1
     for idx, row_idx in enumerate(max_row_indexes):
@@ -77,10 +74,10 @@ while(True):
             if (row_idx < r_changed+25 and row_idx > r_changed-25):
                 in_range = True
         if (not in_range):
-            edges[row_idx, :] = 255
+            edges[row_idx, :] = 122
             rows_changed.append(row_idx)
             num_rows_changed += 1
-            if (num_rows_changed > 10):
+            if (num_rows_changed > 9):
                 break
 
     #max_row_index = np.argmax(row_counts)
@@ -88,7 +85,7 @@ while(True):
     col_counts = get_rows(rotated)
     max_row_indexes = get_sorted_indexes(col_counts)
     curr_index = max_row_indexes[0]
-    edges[:, w-curr_index] = 255
+    edges[:, w-curr_index] = 122
     rows_changed = [curr_index]
     num_rows_changed = 1
     for idx, row_idx in enumerate(max_row_indexes):
@@ -98,10 +95,10 @@ while(True):
             if (row_idx < r_changed+25 and row_idx > r_changed-25):
                 in_range = True
         if (not in_range):
-            edges[:, w-row_idx] = 255
+            edges[:, w-row_idx] = 122
             rows_changed.append(row_idx)
             num_rows_changed += 1
-            if (num_rows_changed > 10):
+            if (num_rows_changed > 9):
                 break
 
     #max_col_index = np.argmax(col_counts)
@@ -110,6 +107,7 @@ while(True):
     #edges[:, w-max_col_index] = 255
     plt.imshow(edges)
     plt.show()
+    pdb.set_trace()
 
     if SLEEP: # just cause i dont want it to sleep each time i test right now
         time.sleep(SECONDS_TO_WAIT)
