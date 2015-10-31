@@ -119,6 +119,7 @@ def determine_board_configuration(img_r, img_binary, rows_changed, cols_changed)
     return board
 
 def main(chess):
+    ran_stockfish = False
     while True:
         image = cv2.imread(img_filename)
         if image is None:
@@ -165,6 +166,11 @@ def main(chess):
         cv2.imwrite("../images/temp.png", img_r)
 
         board = board[:, ::-1].T
+        if not ran_stockfish:
+            best_move, score, mate = chess.assisted_human_turn()
+            if best_move is not None:
+                print "\n\nSTOCKFISH RECOMMENDS: %s with a score of %f, mate = %s\n\n"%(best_move, score / 100.0, mate)
+            ran_stockfish = True
         move = obtain_moves(board, chess.board)
         if move is None:
             continue
@@ -174,9 +180,7 @@ def main(chess):
             print "Illegal move detected!"
             continue
         print "Move %s successful!"%move
-        best_move, score, mate = chess.assisted_human_turn()
-        if best_move is not None:
-            print "\n\nSTOCKFISH RECOMMENDS: %s with a score of %f, mate = %s\n\n"%(best_move, score / 100.0, mate)
+        ran_stockfish = False
 
 if __name__ == "__main__":
     chess = Game(win=True, stockfish_path=BASE_PATH + STOCKFISH_PATH)
