@@ -84,6 +84,8 @@ def get_rows_changed(max_row_indexes, do_cols=False):
 while(True):
     image = cv2.imread(img_filename)
     img_r = ur.unrotate(image)
+    if (img_r is None):
+        continue
     h, w, d = img_r.shape
     edges = get_vert_grad(img_r)
 
