@@ -51,7 +51,8 @@ class Game(object):
 
     def assisted_human_turn(self):
         best_move = self._best_move()
-        self._apply_move(best_move)
+        return best_move
+        #self._apply_move(best_move)
 
     def human_turn(self, move_string):
         self._receive_move(move_string)
