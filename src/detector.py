@@ -7,14 +7,11 @@ from matplotlib import pyplot as plt
 from scipy import misc
 import pdb
 import unrotate as ur
-
-SECONDS_TO_WAIT = 0.1
-plt.rcParams['image.cmap'] = 'gray' # set default image to grayscale
+from engine import *
 
 IMAGE_FOLDER = "../images/"
 
 img_filename = IMAGE_FOLDER + "pic.pngout.png"
-SLEEP = False
 GRAPH = True
 
 def get_counts(edge_img, i, max_h, do_col=False):
@@ -86,88 +83,96 @@ def get_rows_changed(max_row_indexes, do_cols=False):
     return rows_changed
 
 
-while True:
-    image = cv2.imread(img_filename)
-    if image is None:
-        continue
-    img_binary, img_r = ur.unrotate(image)
-    if img_r is None or np.max(img_binary) < 1e-5:
-        continue
-    h, w, d = img_r.shape
+def main(chess):
+    while True:
+        image = cv2.imread(img_filename)
+        if image is None:
+            continue
+        img_binary, img_r = ur.unrotate(image)
+        if img_r is None or np.max(img_binary) < 1e-5:
+            continue
+        h, w, d = img_r.shape
 
-    edges = get_vert_grad(img_r)
-    row_counts = get_rows(edges)
-    max_row_indexes = sorted(range(len(row_counts)), key = lambda k: row_counts[k], reverse=True)
-    rows_changed = get_rows_changed(max_row_indexes)
-    if rows_changed is None or len(rows_changed) != 9:
-        continue
+        edges = get_vert_grad(img_r)
+        row_counts = get_rows(edges)
+        max_row_indexes = sorted(range(len(row_counts)), key = lambda k: row_counts[k], reverse=True)
+        rows_changed = get_rows_changed(max_row_indexes)
+        if rows_changed is None or len(rows_changed) != 9:
+            continue
 
-    edges = np.rot90(img_r)
-    edges = get_vert_grad(edges)
-    col_counts = get_rows(edges)
-    max_col_indexes = sorted(range(len(col_counts)), key = lambda k: col_counts[k], reverse=True)
-    cols_changed = get_rows_changed(max_col_indexes, True)
-    if cols_changed is None or len(cols_changed) != 9:
-        continue
-    edges = np.rot90(edges, k=3)
+        edges = np.rot90(img_r)
+        edges = get_vert_grad(edges)
+        col_counts = get_rows(edges)
+        max_col_indexes = sorted(range(len(col_counts)), key = lambda k: col_counts[k], reverse=True)
+        cols_changed = get_rows_changed(max_col_indexes, True)
+        if cols_changed is None or len(cols_changed) != 9:
+            continue
+        edges = np.rot90(edges, k=3)
 
-    low_y, high_y, low_x, high_x = rows_changed[7], rows_changed[8], cols_changed[7], cols_changed[8]
-    square = img_binary[low_x+10:high_x-10, low_y+10:high_y-10]
-    if np.average(square) < 200:
-        print "Could not properly detect bottom right corner: %d with threshold >=200."%np.average(square)
-        continue
-    low_y, high_y, low_x, high_x = rows_changed[7], rows_changed[8], cols_changed[0], cols_changed[1]
-    square = img_r[low_x+10:high_x-10, low_y+10:high_y-10]
-    if np.average(square) > 80:
-        print "Could not properly detect top right corner: %d with threshold <=50."%np.average(square)
-        continue
+        low_y, high_y, low_x, high_x = rows_changed[7], rows_changed[8], cols_changed[7], cols_changed[8]
+        square = img_binary[low_x+10:high_x-10, low_y+10:high_y-10]
+        if np.average(square) < 200:
+            print "Could not properly detect bottom right corner: %d with threshold >=200."%np.average(square)
+            continue
+        low_y, high_y, low_x, high_x = rows_changed[7], rows_changed[8], cols_changed[0], cols_changed[1]
+        square = img_r[low_x+10:high_x-10, low_y+10:high_y-10]
+        if np.average(square) > 80:
+            print "Could not properly detect top right corner: %d with threshold <=50."%np.average(square)
+            continue
 
-    print "Determining board configuration..."
-    canny_edges = cv2.Canny(img_r, 30, 200)
-    board = -1 * np.ones((8, 8))
-    for i in range(len(rows_changed) - 1):
-        for j in range(len(cols_changed) - 1):
-            low_y, high_y, low_x, high_x = rows_changed[i], rows_changed[i+1], cols_changed[j], cols_changed[j+1]
-            # determine empty squares
-            square = canny_edges[low_x+10:high_x-10, low_y+10:high_y-10]
-            if np.linalg.norm(square) < 1:
-                cv2.circle(img_r, ((high_y - low_y) / 2 + low_y, (high_x - low_x) / 2 + low_x), 1, (255, 0, 0), 10)
-                board[i, j] = 0
-            # determine black or white pieces
-            if board[i, j] == -1:
-                if i % 2 == j % 2:
-                    square = img_binary[low_x+10:high_x-10, low_y+10:high_y-10]
-                    # white square
-                    if np.average(square) > 210:
-                        cv2.circle(img_r, ((high_y - low_y) / 2 + low_y, (high_x - low_x) / 2 + low_x), 1, (0, 255, 0), 10)
-                        board[i, j] = 1
+        print "Determining board configuration..."
+        canny_edges = cv2.Canny(img_r, 30, 200)
+        board = -1 * np.ones((8, 8))
+        for i in range(len(rows_changed) - 1):
+            for j in range(len(cols_changed) - 1):
+                low_y, high_y, low_x, high_x = rows_changed[i], rows_changed[i+1], cols_changed[j], cols_changed[j+1]
+                # determine empty squares
+                square = canny_edges[low_x+10:high_x-10, low_y+10:high_y-10]
+                if np.linalg.norm(square) < 1:
+                    cv2.circle(img_r, ((high_y - low_y) / 2 + low_y, (high_x - low_x) / 2 + low_x), 1, (255, 0, 0), 10)
+                    board[i, j] = 0
+                # determine black or white pieces
+                if board[i, j] == -1:
+                    if i % 2 == j % 2:
+                        square = img_binary[low_x+10:high_x-10, low_y+10:high_y-10]
+                        # white square
+                        if np.average(square) > 220:
+                            cv2.circle(img_r, ((high_y - low_y) / 2 + low_y, (high_x - low_x) / 2 + low_x), 1, (0, 255, 0), 10)
+                            board[i, j] = 1
+                        else:
+                            cv2.circle(img_r, ((high_y - low_y) / 2 + low_y, (high_x - low_x) / 2 + low_x), 1, (0, 0, 255), 10)
+                            board[i, j] = 2
                     else:
-                        cv2.circle(img_r, ((high_y - low_y) / 2 + low_y, (high_x - low_x) / 2 + low_x), 1, (0, 0, 255), 10)
-                        board[i, j] = 2
-                else:
-                    square = img_r[low_x+10:high_x-10, low_y+10:high_y-10]
-                    # black square
-                    if np.average(square) > 80:
-                        cv2.circle(img_r, ((high_y - low_y) / 2 + low_y, (high_x - low_x) / 2 + low_x), 1, (0, 255, 0), 10)
-                        board[i, j] = 1
-                    else:
-                        cv2.circle(img_r, ((high_y - low_y) / 2 + low_y, (high_x - low_x) / 2 + low_x), 1, (0, 0, 255), 10)
-                        board[i, j] = 2
+                        square = img_r[low_x+10:high_x-10, low_y+10:high_y-10]
+                        # black square
+                        if np.average(square) > 80:
+                            cv2.circle(img_r, ((high_y - low_y) / 2 + low_y, (high_x - low_x) / 2 + low_x), 1, (0, 255, 0), 10)
+                            board[i, j] = 1
+                        else:
+                            cv2.circle(img_r, ((high_y - low_y) / 2 + low_y, (high_x - low_x) / 2 + low_x), 1, (0, 0, 255), 10)
+                            board[i, j] = 2
 
-    if GRAPH:
-        for row_idx in cols_changed:
-            cv2.line(img_r, (0, row_idx), (w, row_idx), (0, 0, 255), 1)
+        if GRAPH:
+            for row_idx in cols_changed:
+                cv2.line(img_r, (0, row_idx), (w, row_idx), (0, 0, 255), 1)
 
-        for row_idx in rows_changed:
-            cv2.line(img_r, (row_idx, 0), (row_idx, h), (0, 255, 0), 1)
-    if GRAPH:
-        cv2.imwrite("../images/temp.png", img_r)
-        # plt.figure()
-        # plt.subplot(1,2,1)
-        # plt.imshow(image)
-        # plt.subplot(1,2,2)
-        # plt.imshow(img_r)
-        # plt.show()
+            for row_idx in rows_changed:
+                cv2.line(img_r, (row_idx, 0), (row_idx, h), (0, 255, 0), 1)
+        if GRAPH:
+            cv2.imwrite("../images/temp.png", img_r)
 
-    if SLEEP: # just cause i dont want it to sleep each time i test right now
-        time.sleep(SECONDS_TO_WAIT)
+        board = board[:, ::-1].T
+        move = obtain_moves(board, chess.board)
+        if move is None:
+            continue
+        try:
+            chess._receive_move(move)
+        except IllegalMoveException as e:
+            print "Illegal move detected!"
+            continue
+        print "Move successful!"
+        print move
+
+if __name__ == "__main__":
+    chess = Game(win=True, stockfish_path=BASE_PATH + STOCKFISH_PATH)
+    main(chess)
