@@ -164,8 +164,6 @@ def main(chess):
         cv2.imwrite("../images/temp.png", img_r)
 
         board = board[:, ::-1].T
-        best_move = chess.assisted_human_turn()
-        print "\n\nSTOCKFISH RECOMMENDS: %s\n\n"%best_move
         move = obtain_moves(board, chess.board)
         if move is None:
             continue
@@ -175,6 +173,8 @@ def main(chess):
             print "Illegal move detected!"
             continue
         print "Move successful!"
+        best_move = chess.assisted_human_turn()
+        print "\n\nSTOCKFISH RECOMMENDS: %s\n\n"%best_move
         print move
 
 if __name__ == "__main__":

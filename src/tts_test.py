@@ -1,10 +1,11 @@
 import pyttsx
+
 engine = pyttsx.init()
 horizontalPos = None
 verticalPos = None
 playerColor = None
 text = "Move to ay 1"
-myVoice = 
+#myVoice = 
 engine.say(text)
 voices = engine.getProperty('voices')
 for voice in voices:
