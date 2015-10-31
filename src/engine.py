@@ -2,21 +2,19 @@ import argparse
 import numpy as np
 import string
 import pyttsx
+import time
 import chess as pychess
 import chess.uci as pychess_uci
 
-#BASE_PATH = ".."
-#STOCKFISH_PATH = "/lib/stockfish-6-linux/src/stockfish"
-BASE_PATH = "/Users/shaunsingh/Documents/BerkeleyAcademics/Fall2015/csua/ChessDetectorMoveFinder"
-STOCKFISH_PATH = "/lib/stockfish-6-mac/src/stockfish"
-TIMEOUT = 5000
-
-
+BASE_PATH = ".."
+STOCKFISH_PATH = "/lib/stockfish-6-linux/src/stockfish"
+# BASE_PATH = "/Users/shaunsingh/Documents/BerkeleyAcademics/Fall2015/csua/ChessDetectorMoveFinder"
+# STOCKFISH_PATH = "/lib/stockfish-6-mac/src/stockfish"
 BOARD_DIM = 8
-
 SFISH_WHITE = 0
 SFISH_BLACK = 1
 SFISH_BOTH = 2
+TIMEOUT_MS = 3000
 
 
 class IllegalMoveException(Exception):
@@ -26,7 +24,7 @@ class BadBoardStateException(Exception):
         pass
 
 class Game(object):
-    def __init__(self, win, stockfish_path, stockfish_timeout=2000, stockfish_player=SFISH_BLACK):
+    def __init__(self, win, stockfish_path, stockfish_timeout=TIMEOUT_MS, stockfish_player=SFISH_BLACK):
         self.win = win
         self.board = pychess.Board()
         self.engine = pychess_uci.popen_engine(stockfish_path)
@@ -35,8 +33,11 @@ class Game(object):
         self.stockfish_timeout = stockfish_timeout
         self.stockfish_player = stockfish_player
 	self.tts_engine = pyttsx.init()
+        self.tts_engine.setProperty("rate", 70)
+        voices = self.tts_engine.getProperty("voices")
+        self.tts_engine.setProperty("voice", voices[9].id)
+        self.engine.info_handlers.append(pychess_uci.InfoHandler())
 
-    
     def _apply_move(self, move):
         if move in self.board.legal_moves:
             self.board.push(move)
@@ -49,7 +50,6 @@ class Game(object):
         move = pychess.Move.from_uci(move_string)
         self._apply_move(move)
 
-    # TODO: currently identity
     def _valid_string(self, move_string):
         return move_string
 
@@ -59,24 +59,55 @@ class Game(object):
 
     def assisted_human_turn(self, speak=True):
 	best_move = None
-        if self.stockfish_player = SFISH_BLACK and self.board.turn == False:
-            best_move, ponder = self.engine.go(movetime=self.stockfish_timeout)
-        elif self.stockfish_player = SFISH_WHITE and self.board.turn == True:
-            best_move, ponder = self.engine.go(movetime=self.stockfish_timeout)
-        elif self.stockfish_player = SFISH_BOTH:
-            best_move, ponder = self.engine.go(movetime=self.stockfish_timeout)
-	if speak and best_move:
-            self.read_move(best_move)
-        return best_move
+        if self.stockfish_player == SFISH_BLACK and self.board.turn == False:
+            self.engine.go(movetime=self.stockfish_timeout, async_callback=True)
+            time.sleep(self.stockfish_timeout / 1000)
+            ih = self.engine.info_handlers[0]
+            best_move = ih.info["pv"][1][0]
+            score = ih.info["score"][1].cp
+            mate = ih.info["score"][1].mate
+        elif self.stockfish_player == SFISH_WHITE and self.board.turn == True:
+            self.engine.go(movetime=self.stockfish_timeout, async_callback=True)
+            time.sleep(self.stockfish_timeout / 1000)
+            ih = self.engine.info_handlers[0]
+            best_move = ih.info["pv"][1][0]
+            score = ih.info["score"][1].cp
+            mate = ih.info["score"][1].mate
+        elif self.stockfish_player == SFISH_BOTH:
+            self.engine.go(movetime=self.stockfish_timeout, async_callback=True)
+            time.sleep(self.stockfish_timeout / 1000)
+            ih = self.engine.info_handlers[0]
+            best_move = ih.info["pv"][1][0]
+            score = ih.info["score"][1].cp
+            mate = ih.info["score"][1].mate
+        if best_move is None:
+            return None, None, None
+	if speak:
+            self.read_move(best_move, score, mate)
+        return best_move, score, mate
 
-    #TODO: verify
-    def read_move(self, move):
-	horizontalPos = None
-	verticalPos = None
-	playerColor = None
-	self.tts_engine.say(move)
-	voices = self.tts_eengine.getProp
-
+    def read_move(self, move, score, mate):
+        move_start, move_end = move.uci()[:2], move.uci()[2:]
+        piece = self.board.piece_at(move.from_square).piece_type
+        piece_name = "default"
+        if piece == pychess.PAWN:
+            piece_name = "pawn"
+        elif piece == pychess.KNIGHT:
+            piece_name = "knight"
+        elif piece == pychess.BISHOP:
+            piece_name = "bishop"
+        elif piece == pychess.ROOK:
+            piece_name = "rook"
+        elif piece == pychess.QUEEN:
+            piece_name = "queen"
+        elif piece == pychess.KING:
+            piece_name = "king"
+	self.tts_engine.say("move %s from %s to %s"%(piece_name, move_start, move_end))
+        if mate:
+            self.tts_engine.say("checkmate in %d, loser"%mate)
+        else:
+            self.tts_engine.say("score is %.2f"%(score / 100.0))
+        self.tts_engine.runAndWait()
 
     def human_turn(self, move_string):
         self._receive_move(move_string)

@@ -155,7 +155,6 @@ def main(chess):
             print "Could not properly detect top right corner: %d with threshold <=50."%np.average(square)
             continue
 
-        print "Determining board configuration..."
         board = determine_board_configuration(img_r, img_binary, rows_changed, cols_changed)
 
         if GRAPH:
@@ -174,10 +173,10 @@ def main(chess):
         except IllegalMoveException as e:
             print "Illegal move detected!"
             continue
-        print "Move successful!"
-        best_move = chess.assisted_human_turn()
-        print "\n\nSTOCKFISH RECOMMENDS: %s\n\n"%best_move
-        print move
+        print "Move %s successful!"%move
+        best_move, score, mate = chess.assisted_human_turn()
+        if best_move is not None:
+            print "\n\nSTOCKFISH RECOMMENDS: %s with a score of %f, mate = %s\n\n"%(best_move, score / 100.0, mate)
 
 if __name__ == "__main__":
     chess = Game(win=True, stockfish_path=BASE_PATH + STOCKFISH_PATH)
