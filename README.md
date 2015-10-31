@@ -15,7 +15,7 @@ This project was mainly broken up into 3 portions:
 
 
 ## Vision
-The large majority of the code to detect the chess board is in `detection.py`, with helper functions from `canny.py`, `difference.py`, and `unrotate.py`.
+The large majority of the code to detect the chess board is in `detection.py`, with helper functions from  `difference.py` and `unrotate.py`.
 The vision portion of the project was the trickiest as we wanted our project to be invariant to many different factors such as rotation. A lot of image preprocessing was necessary in order to be able to appropriately detect location of pieces and give appropriate advice. We mainly used OpenCV2 to be able to handle these operations. This step consisted of setting up the sensor, polling for a new image every given interval and then performing operations that would identify pieces. We took advantage of image gradients in order to eventually find a bounding box, where we then could isolate the image and try to determine if squares contained a black or white piece.
 
 ## Getting Best Move
