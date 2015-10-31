@@ -118,10 +118,13 @@ def np_to_uci(coords):
 
 def obtain_moves(cv_board, pychess_board):
     (new_filled, new_empty, captured_pieces) = changed_positions(cv_board, pychess_board)
-    
+   
     new_filled = map(lambda np: np_to_uci(np), new_filled)
     new_empty = map(lambda np: np_to_uci(np), new_empty)
-    
+  
+    if len(new_filled) > 1:
+        handle_castle(new_filled, new_empty)
+
     moves = zip(new_filled, new_empty)
     # string bullshit
     move_str = ""
@@ -129,6 +132,17 @@ def obtain_moves(cv_board, pychess_board):
         for m in move:
             move_str += m
     return move_str
+
+def handle_castle(new_filled):
+    moves = zip(new_filled, new_empty)
+    # string bullshit
+    move_str = ""
+    for move in moves: 
+        for m in move:
+            move_str += m
+    return move_str
+
+
 
 chess = Game(win=True, stockfish_path=BASE_PATH + STOCKFISH_PATH)
 move = obtain_moves(initial_state, chess.board)
