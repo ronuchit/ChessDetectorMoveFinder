@@ -216,13 +216,13 @@ def obtain_moves(cv_board, pychess_board):
 def handle_castle(new_filled):
     # Kingside castle
     if 'g8' in new_filled:
-        return 'e8h8'
+        return 'e8g8'
     elif 'g1' in new_filled:
-        return 'e1h1'
+        return 'e1g1'
     # Queenside castle
     if 'c8' in new_filled:
-        return 'e8a8'
+        return 'e8c8'
     elif 'c1' in new_filled:
-        return 'e1a1'
-    print "Two moves!"
+        return 'e1c1'
+    print "Two moves, but no castling was detected!"
     return None
