@@ -1,4 +1,3 @@
-import argparse
 import numpy as np
 import string
 import pyttsx
@@ -15,7 +14,6 @@ SFISH_WHITE = 0
 SFISH_BLACK = 1
 SFISH_BOTH = 2
 TIMEOUT_MS = 3000
-
 
 class IllegalMoveException(Exception):
         pass
@@ -36,6 +34,14 @@ class Game(object):
         self.tts_engine.setProperty("rate", 70)
         voices = self.tts_engine.getProperty("voices")
         self.tts_engine.setProperty("voice", voices[9].id)
+        if self.stockfish_player == SFISH_WHITE:
+            what_playing = "white"
+        elif self.stockfish_player == SFISH_BLACK:
+            what_playing = "black"
+        else:
+            what_playing = "both white and black"
+        self.tts_engine.say("i am playing %s"%what_playing)
+        self.tts_engine.runAndWait()
         self.engine.info_handlers.append(pychess_uci.InfoHandler())
 
     def _apply_move(self, move):
@@ -46,16 +52,8 @@ class Game(object):
             raise IllegalMoveException(move)
 
     def _receive_move(self, move_string):
-        move_string = self._valid_string(move_string)
         move = pychess.Move.from_uci(move_string)
         self._apply_move(move)
-
-    def _valid_string(self, move_string):
-        return move_string
-
-    def start_game(self):
-        self.engine.ucinewgame()
-        return True
 
     def assisted_human_turn(self, speak=True):
 	best_move = None
@@ -196,10 +194,6 @@ def obtain_moves(cv_board, pychess_board):
     new_filled = map(lambda np: np_to_uci(np), new_filled)
     new_empty = map(lambda np: np_to_uci(np), new_empty)
 
-    # print new_empty
-    # print new_filled
-    # print captured_pieces
-  
     if len(new_filled) > 1:
         return handle_castle(new_filled)
 
@@ -227,14 +221,3 @@ def handle_castle(new_filled):
         return 'e1a1'
     print "Two moves!"
     return None
-
-chess = Game(win=True, stockfish_path=BASE_PATH + STOCKFISH_PATH)
-# move = obtain_moves(initial_state, chess.board)
-# chess._receive_move(move)
-# print "First pawn move"
-# print chess.board
-# move = obtain_moves(bad_state, chess.board)
-# chess._receive_move(move)
-# print "Bad error pawn move"
-# print chess.board
-
