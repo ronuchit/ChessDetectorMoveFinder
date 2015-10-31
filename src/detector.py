@@ -89,8 +89,9 @@ while(True):
     edges = get_vert_grad(edges)
 
 ####
-    col_counts = get_rows(edges, True)
+    col_counts = get_rows(edges)
     max_col_indexes = sorted(range(len(col_counts)), key = lambda k: col_counts[k], reverse=True)
+    pdb.set_trace()
     print col_counts
     print max_col_indexes
     cols_changed = get_rows_changed(max_col_indexes, True)
