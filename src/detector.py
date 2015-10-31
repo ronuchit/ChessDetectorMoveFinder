@@ -10,6 +10,7 @@ import unrotate as ur
 from engine import *
 
 IMAGE_FOLDER = "../images/"
+plt.rcParams['image.cmap'] = 'gray'
 
 img_filename = IMAGE_FOLDER + "pic.pngout.png"
 GRAPH = True
@@ -83,14 +84,14 @@ def get_rows_changed(max_row_indexes, do_cols=False):
     return rows_changed
 
 def determine_board_configuration(img_r, img_binary, rows_changed, cols_changed):
-    canny_edges = cv2.Canny(img_r, 30, 200)
+    canny_edges = cv2.Canny(img_r, 0, 150)
     board = -1 * np.ones((8, 8))
     for i in range(len(rows_changed) - 1):
         for j in range(len(cols_changed) - 1):
             low_y, high_y, low_x, high_x = rows_changed[i], rows_changed[i+1], cols_changed[j], cols_changed[j+1]
             # determine empty squares
             square = canny_edges[low_x+10:high_x-10, low_y+10:high_y-10]
-            if np.linalg.norm(square) < 1:
+            if np.linalg.norm(square) < 1e-5:
                 cv2.circle(img_r, ((high_y - low_y) / 2 + low_y, (high_x - low_x) / 2 + low_x), 1, (255, 0, 0), 10)
                 board[i, j] = 0
             # determine black or white pieces
@@ -158,11 +159,9 @@ def main(chess):
         if GRAPH:
             for row_idx in cols_changed:
                 cv2.line(img_r, (0, row_idx), (w, row_idx), (0, 0, 255), 1)
-
             for row_idx in rows_changed:
                 cv2.line(img_r, (row_idx, 0), (row_idx, h), (0, 255, 0), 1)
-        if GRAPH:
-            cv2.imwrite("../images/temp.png", img_r)
+        cv2.imwrite("../images/temp.png", img_r)
 
         board = board[:, ::-1].T
         move = obtain_moves(board, chess.board)
