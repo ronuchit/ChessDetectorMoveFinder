@@ -7,12 +7,12 @@ from scipy import misc
 import pdb
 import unrotate as ur
 
-SECONDS_TO_WAIT = 3
+SECONDS_TO_WAIT = 0.1
 plt.rcParams['image.cmap'] = 'gray' # set default image to grayscale
 
-IMAGE_FOLDER = "../images/samples/"
+IMAGE_FOLDER = "../images/"
 
-img_filename = IMAGE_FOLDER + "pic1_cropped.png"
+img_filename = IMAGE_FOLDER + "pic.png"
 SLEEP = False
 GRAPH = True
 L_THRESH = 80
