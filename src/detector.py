@@ -76,17 +76,19 @@ def get_rows_changed(max_row_indexes, do_cols=False):
             num_rows_changed += 1
             if (num_rows_changed >= 9):
                 break
+    if len(rows_changed) <= 3:
+        print "Too few rows changed, skipping"
+        return None
     rows_changed = fix_rows(rows_changed, do_cols)
     return rows_changed
 
 
-# given images
-while(True):
+while True:
     image = cv2.imread(img_filename)
     if image is None:
         continue
     img_r = ur.unrotate(image)
-    if (img_r is None):
+    if img_r is None:
         continue
     h, w, d = img_r.shape
     edges = get_vert_grad(img_r)
@@ -95,6 +97,8 @@ while(True):
     row_counts = get_rows(edges)
     max_row_indexes = sorted(range(len(row_counts)), key = lambda k: row_counts[k], reverse=True)
     rows_changed = get_rows_changed(max_row_indexes)
+    if rows_changed is None:
+        continue
 
     edges = np.rot90(img_r)
     edges = get_vert_grad(edges)
@@ -102,6 +106,8 @@ while(True):
     col_counts = get_rows(edges)
     max_col_indexes = sorted(range(len(col_counts)), key = lambda k: col_counts[k], reverse=True)
     cols_changed = get_rows_changed(max_col_indexes, True)
+    if cols_changed is None:
+        continue
     edges = np.rot90(edges, k=3)
     if GRAPH:
         for row_idx in cols_changed:
@@ -110,12 +116,13 @@ while(True):
         for row_idx in rows_changed:
             cv2.line(img_r, (row_idx, 0), (row_idx, w), (0, 255, 0), 1)
     if GRAPH:
-        plt.figure()
-        plt.subplot(1,2,1)
-        plt.imshow(image)
-        plt.subplot(1,2,2)
-        plt.imshow(img_r)
-        plt.show()
+        cv2.imwrite("../images/temp.png", img_r)
+        # plt.figure()
+        # plt.subplot(1,2,1)
+        # plt.imshow(image)
+        # plt.subplot(1,2,2)
+        # plt.imshow(img_r)
+        # plt.show()
 
     if SLEEP: # just cause i dont want it to sleep each time i test right now
         time.sleep(SECONDS_TO_WAIT)
