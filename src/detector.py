@@ -1,6 +1,7 @@
 import numpy as np
 import time
 import scipy
+import itertools
 import cv2
 from matplotlib import pyplot as plt
 from scipy import misc
@@ -12,7 +13,7 @@ plt.rcParams['image.cmap'] = 'gray' # set default image to grayscale
 
 IMAGE_FOLDER = "../images/"
 
-img_filename = IMAGE_FOLDER + "pic.png"
+img_filename = IMAGE_FOLDER + "pic.pngout.png"
 SLEEP = False
 GRAPH = True
 L_THRESH = 80
@@ -57,10 +58,8 @@ def fix_rows(rows, do_cols=False):
     rows = sorted(rows)
     rows = rows[1:-1]
     avg = np.average([rows[i] - rows[i-1] for i in range(1, len(rows))])
-    if do_cols:
-        rows.append(int(rows[-1]+avg))
-    else:
-        rows.insert(0, int(rows[0] - avg))
+    rows.append(int(rows[-1] + avg))
+    rows.insert(0, int(rows[0] - avg))
     return rows
 
 def get_rows_changed(max_row_indexes, do_cols=False):
@@ -87,13 +86,12 @@ while True:
     image = cv2.imread(img_filename)
     if image is None:
         continue
-    img_r = ur.unrotate(image)
-    if img_r is None:
+    img_binary, img_r = ur.unrotate(image)
+    if img_r is None or np.max(img_binary) < 1e-5:
         continue
     h, w, d = img_r.shape
-    edges = get_vert_grad(img_r)
 
-    # count rows and cols where edges are within a certain window_size range
+    edges = get_vert_grad(img_r)
     row_counts = get_rows(edges)
     max_row_indexes = sorted(range(len(row_counts)), key = lambda k: row_counts[k], reverse=True)
     rows_changed = get_rows_changed(max_row_indexes)
@@ -102,19 +100,29 @@ while True:
 
     edges = np.rot90(img_r)
     edges = get_vert_grad(edges)
-
     col_counts = get_rows(edges)
     max_col_indexes = sorted(range(len(col_counts)), key = lambda k: col_counts[k], reverse=True)
     cols_changed = get_rows_changed(max_col_indexes, True)
     if cols_changed is None:
         continue
     edges = np.rot90(edges, k=3)
+
+    print rows_changed, cols_changed
+    for i in range(len(rows_changed) - 1):
+        for j in range(len(cols_changed) - 1):
+            low_y, high_y, low_x, high_x = rows_changed[i], rows_changed[i+1], cols_changed[j], cols_changed[j+1]
+            x_space = np.linspace(low_x, high_x, num=8)[1:-1].astype(int)
+            y_space = np.linspace(low_y, high_y, num=8)[1:-1].astype(int)
+            # print np.average(img_binary[zip(*list(itertools.product(x_space, y_space)))])
+            # raw_input("!!")
+    # import IPython; IPython.embed()
+
     if GRAPH:
         for row_idx in cols_changed:
-            cv2.line(img_r, (0, row_idx), (h, row_idx), (0, 0, 255), 1)
+            cv2.line(img_r, (0, row_idx), (w, row_idx), (0, 0, 255), 1)
 
         for row_idx in rows_changed:
-            cv2.line(img_r, (row_idx, 0), (row_idx, w), (0, 255, 0), 1)
+            cv2.line(img_r, (row_idx, 0), (row_idx, h), (0, 255, 0), 1)
     if GRAPH:
         cv2.imwrite("../images/temp.png", img_r)
         # plt.figure()

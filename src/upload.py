@@ -35,6 +35,7 @@ class Runner:
                 # os.system("scp -i ~/.ssh/id_rsa.pub %s temp@lfd2.banatao.berkeley.edu:~"%(IMAGE_F_NAME))
                 if self.img is not None:
                     cv2.imwrite(IMAGE_F_NAME, self.img)
+                    os.system("cp %s %s"%(IMAGE_F_NAME, IMAGE_F_NAME + "out.png"))
                 rospy.sleep(0.5)
         except KeyboardInterrupt as e:
             global end
