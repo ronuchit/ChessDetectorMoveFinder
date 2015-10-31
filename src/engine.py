@@ -166,23 +166,23 @@ def changed_positions(cv_board, pychess_board):
                     new_empty.append((i,j))
                 else:
                     new_filled.append((i,j))
-    return (new_empty, new_filled, captured_pieces) 
+    return (new_empty, new_filled, captured_pieces)
 
 
 def changed_val(cv_val, pychess_val):
-    if cv_val == WHITE and pychess_val == WHITE_PYCH: 
+    if cv_val == WHITE and pychess_val == WHITE_PYCH:
         return False
-    elif cv_val == BLACK and pychess_val == BLACK_PYCH: 
+    elif cv_val == BLACK and pychess_val == BLACK_PYCH:
         return False
-    elif cv_val == EMPTY and pychess_val == None: 
+    elif cv_val == EMPTY and pychess_val == None:
         return False
     return True
 
 
 def captured_val(cv_val, pychess_val):
-    if cv_val == WHITE and pychess_val == BLACK_PYCH: 
+    if cv_val == WHITE and pychess_val == BLACK_PYCH:
         return True
-    elif cv_val == BLACK and pychess_val == WHITE_PYCH: 
+    elif cv_val == BLACK and pychess_val == WHITE_PYCH:
         return True
 
 
