@@ -22,7 +22,7 @@ class BadBoardStateException(Exception):
         pass
 
 class Game(object):
-    def __init__(self, win, stockfish_path, stockfish_timeout=TIMEOUT_MS, stockfish_player=SFISH_BLACK):
+    def __init__(self, win, stockfish_path, stockfish_timeout=TIMEOUT_MS, stockfish_player=SFISH_WHITE):
         self.win = win
         self.board = pychess.Board()
         self.engine = pychess_uci.popen_engine(stockfish_path)
@@ -31,7 +31,7 @@ class Game(object):
         self.stockfish_timeout = stockfish_timeout
         self.stockfish_player = stockfish_player
 	self.tts_engine = pyttsx.init()
-        self.tts_engine.setProperty("rate", 70)
+        self.tts_engine.setProperty("rate", 130)
         voices = self.tts_engine.getProperty("voices")
         self.tts_engine.setProperty("voice", voices[9].id)
         if self.stockfish_player == SFISH_WHITE:
@@ -79,6 +79,8 @@ class Game(object):
             score = ih.info["score"][1].cp
             mate = ih.info["score"][1].mate
         if best_move is None:
+            self.tts_engine.say("your turn")
+            self.tts_engine.runAndWait()
             return None, None, None
 	if speak:
             self.read_move(best_move, score, mate)
@@ -104,7 +106,10 @@ class Game(object):
         if mate:
             self.tts_engine.say("checkmate in %d, loser"%mate)
         else:
-            self.tts_engine.say("score is %.2f"%(score / 100.0))
+            if score < 0:
+                self.tts_engine.say("score is negative %.2f"%(abs(score) / 100.0))
+            else:
+                self.tts_engine.say("score is %.2f"%(score / 100.0))
         self.tts_engine.runAndWait()
 
     def human_turn(self, move_string):
@@ -211,13 +216,13 @@ def obtain_moves(cv_board, pychess_board):
 def handle_castle(new_filled):
     # Kingside castle
     if 'g8' in new_filled:
-        return 'e8h8'
+        return 'e8g8'
     elif 'g1' in new_filled:
-        return 'e1h1'
+        return 'e1g1'
     # Queenside castle
     if 'c8' in new_filled:
-        return 'e8a8'
+        return 'e8c8'
     elif 'c1' in new_filled:
-        return 'e1a1'
-    print "Two moves!"
+        return 'e1c1'
+    print "Two moves, but no castling was detected!"
     return None
