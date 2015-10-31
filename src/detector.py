@@ -83,6 +83,8 @@ def get_rows_changed(max_row_indexes, do_cols=False):
 # given images
 while(True):
     image = cv2.imread(img_filename)
+    if image is None:
+        continue
     img_r = ur.unrotate(image)
     if (img_r is None):
         continue
