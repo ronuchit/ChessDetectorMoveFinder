@@ -6,11 +6,12 @@ In this project, we've developed a system that assists a player in a game of che
 
 # Method
 This project was mainly broken up into 3 portions:
-1. Detection and Vision of the chess board.
 
-2. Search & Recommendation of the best move.
+*1.* Detection and Vision of the chess board.
 
-3. Translation of string and announcing it.
+*2.* Search & Recommendation of the best move.
+
+*3.* Translation of string and announcing it.
 
 
 ## Vision
