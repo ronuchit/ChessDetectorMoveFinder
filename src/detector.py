@@ -82,6 +82,38 @@ def get_rows_changed(max_row_indexes, do_cols=False):
     rows_changed = fix_rows(rows_changed, do_cols)
     return rows_changed
 
+def determine_board_configuration(img_r, img_binary, rows_changed, cols_changed):
+    canny_edges = cv2.Canny(img_r, 30, 200)
+    board = -1 * np.ones((8, 8))
+    for i in range(len(rows_changed) - 1):
+        for j in range(len(cols_changed) - 1):
+            low_y, high_y, low_x, high_x = rows_changed[i], rows_changed[i+1], cols_changed[j], cols_changed[j+1]
+            # determine empty squares
+            square = canny_edges[low_x+10:high_x-10, low_y+10:high_y-10]
+            if np.linalg.norm(square) < 1:
+                cv2.circle(img_r, ((high_y - low_y) / 2 + low_y, (high_x - low_x) / 2 + low_x), 1, (255, 0, 0), 10)
+                board[i, j] = 0
+            # determine black or white pieces
+            if board[i, j] == -1:
+                if i % 2 == j % 2:
+                    square = img_binary[low_x+10:high_x-10, low_y+10:high_y-10]
+                    # white square
+                    if np.average(square) > 220:
+                        cv2.circle(img_r, ((high_y - low_y) / 2 + low_y, (high_x - low_x) / 2 + low_x), 1, (0, 255, 0), 10)
+                        board[i, j] = 1
+                    else:
+                        cv2.circle(img_r, ((high_y - low_y) / 2 + low_y, (high_x - low_x) / 2 + low_x), 1, (0, 0, 255), 10)
+                        board[i, j] = 2
+                else:
+                    square = img_r[low_x+10:high_x-10, low_y+10:high_y-10]
+                    # black square
+                    if np.average(square) > 80:
+                        cv2.circle(img_r, ((high_y - low_y) / 2 + low_y, (high_x - low_x) / 2 + low_x), 1, (0, 255, 0), 10)
+                        board[i, j] = 1
+                    else:
+                        cv2.circle(img_r, ((high_y - low_y) / 2 + low_y, (high_x - low_x) / 2 + low_x), 1, (0, 0, 255), 10)
+                        board[i, j] = 2
+    return board
 
 def main(chess):
     while True:
@@ -121,36 +153,7 @@ def main(chess):
             continue
 
         print "Determining board configuration..."
-        canny_edges = cv2.Canny(img_r, 30, 200)
-        board = -1 * np.ones((8, 8))
-        for i in range(len(rows_changed) - 1):
-            for j in range(len(cols_changed) - 1):
-                low_y, high_y, low_x, high_x = rows_changed[i], rows_changed[i+1], cols_changed[j], cols_changed[j+1]
-                # determine empty squares
-                square = canny_edges[low_x+10:high_x-10, low_y+10:high_y-10]
-                if np.linalg.norm(square) < 1:
-                    cv2.circle(img_r, ((high_y - low_y) / 2 + low_y, (high_x - low_x) / 2 + low_x), 1, (255, 0, 0), 10)
-                    board[i, j] = 0
-                # determine black or white pieces
-                if board[i, j] == -1:
-                    if i % 2 == j % 2:
-                        square = img_binary[low_x+10:high_x-10, low_y+10:high_y-10]
-                        # white square
-                        if np.average(square) > 220:
-                            cv2.circle(img_r, ((high_y - low_y) / 2 + low_y, (high_x - low_x) / 2 + low_x), 1, (0, 255, 0), 10)
-                            board[i, j] = 1
-                        else:
-                            cv2.circle(img_r, ((high_y - low_y) / 2 + low_y, (high_x - low_x) / 2 + low_x), 1, (0, 0, 255), 10)
-                            board[i, j] = 2
-                    else:
-                        square = img_r[low_x+10:high_x-10, low_y+10:high_y-10]
-                        # black square
-                        if np.average(square) > 80:
-                            cv2.circle(img_r, ((high_y - low_y) / 2 + low_y, (high_x - low_x) / 2 + low_x), 1, (0, 255, 0), 10)
-                            board[i, j] = 1
-                        else:
-                            cv2.circle(img_r, ((high_y - low_y) / 2 + low_y, (high_x - low_x) / 2 + low_x), 1, (0, 0, 255), 10)
-                            board[i, j] = 2
+        board = determine_board_configuration(img_r, img_binary, rows_changed, cols_changed)
 
         if GRAPH:
             for row_idx in cols_changed:
