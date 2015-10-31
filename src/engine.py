@@ -1,6 +1,7 @@
 import argparse
 import numpy as np
 import string
+import pyttsx
 import chess as pychess
 import chess.uci as pychess_uci
 
@@ -9,6 +10,7 @@ import chess.uci as pychess_uci
 BASE_PATH = "/Users/shaunsingh/Documents/BerkeleyAcademics/Fall2015/csua/ChessDetectorMoveFinder"
 STOCKFISH_PATH = "/lib/stockfish-6-mac/src/stockfish"
 TIMEOUT = 5000
+
 
 BOARD_DIM = 8
 
@@ -32,6 +34,7 @@ class Game(object):
         self.engine.setoption({"UCI_Chess960": True})
         self.stockfish_timeout = stockfish_timeout
         self.stockfish_player = stockfish_player
+	self.tts_engine = pyttsx.init()
 
     
     def _apply_move(self, move):
@@ -54,14 +57,26 @@ class Game(object):
         self.engine.ucinewgame()
         return True
 
-    def assisted_human_turn(self):
+    def assisted_human_turn(self, speak=True):
+	best_move = None
         if self.stockfish_player = SFISH_BLACK and self.board.turn == False:
             best_move, ponder = self.engine.go(movetime=self.stockfish_timeout)
         elif self.stockfish_player = SFISH_WHITE and self.board.turn == True:
             best_move, ponder = self.engine.go(movetime=self.stockfish_timeout)
         elif self.stockfish_player = SFISH_BOTH:
             best_move, ponder = self.engine.go(movetime=self.stockfish_timeout)
+	if speak and best_move:
+            self.read_move(best_move)
         return best_move
+
+    #TODO: verify
+    def read_move(self, move):
+	horizontalPos = None
+	verticalPos = None
+	playerColor = None
+	self.tts_engine.say(move)
+	voices = self.tts_eengine.getProp
+
 
     def human_turn(self, move_string):
         self._receive_move(move_string)
