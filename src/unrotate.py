@@ -18,6 +18,7 @@ DARK_THRESHOLD = 100
 def unrotate(image):
     #image = cv2.imread(img_filename)
     image = cv2.medianBlur(image, 5)
+    cpy_image = np.copy(image)
     subbed = np.linalg.norm(image - DARK_COLOR, axis=2)
     image[:, :] = [255, 255, 255]
     for ind in zip(*np.where(subbed < DARK_THRESHOLD)):
@@ -58,9 +59,9 @@ def unrotate(image):
         rect_corners = sorted(rect_corners, key=lambda r: r[1])[:2]
         rect_corners = sorted(rect_corners, key=lambda r: r[0])
         angles.append(np.arctan2(rect_corners[1][1] - rect_corners[0][1], rect_corners[1][0] - rect_corners[0][0]))
-    image = image[min_x-10:max_x+10, min_y-10:max_y+10]
-    image = misc.imrotate(image, np.average(angles) / (2 * np.pi) * 360)
-    return image
+    cpy_image = cpy_image[min_x-10:max_x+10, min_y-10:max_y+10]
+    cpy_image = misc.imrotate(cpy_image, np.average(angles) / (2 * np.pi) * 360)
+    return cpy_image
 
 if __name__ == "__main__":
     plt.imshow(unrotate())

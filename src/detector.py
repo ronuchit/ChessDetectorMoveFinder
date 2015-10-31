@@ -14,7 +14,7 @@ IMAGE_FOLDER = "../images/samples/"
 
 img_filename = IMAGE_FOLDER + "pic1_cropped.png"
 SLEEP = False
-GRAPH = False
+GRAPH = True
 L_THRESH = 80
 H_THRESH = 200
 
@@ -53,6 +53,16 @@ def get_vert_grad(img):
     vert_edges = edges | edges_2
     return vert_edges
 
+def fix_rows(rows, do_cols=False):
+    rows = sorted(rows)
+    rows = rows[1:-1]
+    avg = np.average([rows[i] - rows[i-1] for i in range(1, len(rows))])
+    if do_cols:
+        rows.append(int(rows[-1]+avg))
+    else:
+        rows.insert(0, int(rows[0] - avg))
+    return rows
+
 def get_rows_changed(max_row_indexes, do_cols=False):
     rows_changed = []
     num_rows_changed = 0
@@ -62,30 +72,27 @@ def get_rows_changed(max_row_indexes, do_cols=False):
             if (row_idx < r_changed+25 and row_idx > r_changed-25):
                 in_range = True
         if (not in_range):
-            if do_cols:
-                cv2.line(image_unrotated, (0, row_idx), (h, row_idx), (0, 0, 255), 1)
-            else:
-                cv2.line(image_unrotated, (row_idx, 0), (row_idx, w), (0, 255, 0), 1)
             rows_changed.append(row_idx)
             num_rows_changed += 1
             if (num_rows_changed >= 9):
                 break
+    rows_changed = fix_rows(rows_changed, do_cols)
     return rows_changed
 
 
 # given images
 while(True):
     image = cv2.imread(img_filename)
-    image_unrotated = ur.unrotate(image)
-    h, w, d = image_unrotated.shape
-    edges = get_vert_grad(image_unrotated)
+    img_r = ur.unrotate(image)
+    h, w, d = img_r.shape
+    edges = get_vert_grad(img_r)
 
     # count rows and cols where edges are within a certain window_size range
     row_counts = get_rows(edges)
     max_row_indexes = sorted(range(len(row_counts)), key = lambda k: row_counts[k], reverse=True)
     rows_changed = get_rows_changed(max_row_indexes)
 
-    edges = np.rot90(image_unrotated)
+    edges = np.rot90(img_r)
     edges = get_vert_grad(edges)
 
     col_counts = get_rows(edges)
@@ -93,11 +100,17 @@ while(True):
     cols_changed = get_rows_changed(max_col_indexes, True)
     edges = np.rot90(edges, k=3)
     if GRAPH:
+        for row_idx in cols_changed:
+            cv2.line(img_r, (0, row_idx), (h, row_idx), (0, 0, 255), 1)
+
+        for row_idx in rows_changed:
+            cv2.line(img_r, (row_idx, 0), (row_idx, w), (0, 255, 0), 1)
+    if GRAPH:
         plt.figure()
         plt.subplot(1,2,1)
-        plt.imshow(edges)
+        plt.imshow(image)
         plt.subplot(1,2,2)
-        plt.imshow(image_unrotated)
+        plt.imshow(img_r)
         plt.show()
 
     if SLEEP: # just cause i dont want it to sleep each time i test right now
