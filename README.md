@@ -7,8 +7,11 @@ In this project, we've developed a system that assists a player in a game of che
 # Method
 This project was mainly broken up into 3 portions:
 1. Detection and Vision of the chess board.
+
 2. Search & Recommendation of the best move.
+
 3. Translation of string and announcing it.
+
 
 ## Vision
 The large majority of the code to detect the chess board is in `detection.py`, with helper functions from `canny.py`, `difference.py`, and `unrotate.py`.
