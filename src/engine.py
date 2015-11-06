@@ -58,21 +58,21 @@ class Game(object):
     def assisted_human_turn(self, speak=True):
 	best_move = None
         if self.stockfish_player == SFISH_BLACK and self.board.turn == False:
-            self.engine.go(movetime=self.stockfish_timeout, async_callback=True)
+            self.run_engine()
             time.sleep(self.stockfish_timeout / 1000)
             ih = self.engine.info_handlers[0]
             best_move = ih.info["pv"][1][0]
             score = ih.info["score"][1].cp
             mate = ih.info["score"][1].mate
         elif self.stockfish_player == SFISH_WHITE and self.board.turn == True:
-            self.engine.go(movetime=self.stockfish_timeout, async_callback=True)
+            self.run_engine()
             time.sleep(self.stockfish_timeout / 1000)
             ih = self.engine.info_handlers[0]
             best_move = ih.info["pv"][1][0]
             score = ih.info["score"][1].cp
             mate = ih.info["score"][1].mate
         elif self.stockfish_player == SFISH_BOTH:
-            self.engine.go(movetime=self.stockfish_timeout, async_callback=True)
+            self.run_engine()
             time.sleep(self.stockfish_timeout / 1000)
             ih = self.engine.info_handlers[0]
             best_move = ih.info["pv"][1][0]
@@ -85,6 +85,11 @@ class Game(object):
 	if speak:
             self.read_move(best_move, score, mate)
         return best_move, score, mate
+
+    def run_engine(self):
+        self.tts_engine.say("my turn")
+        self.tts_engine.runAndWait()
+        self.engine.go(movetime=self.stockfish_timeout, async_callback=True)        
 
     def read_move(self, move, score, mate):
         move_start, move_end = move.uci()[:2], move.uci()[2:]
