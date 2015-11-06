@@ -89,7 +89,7 @@ class Game(object):
     def run_engine(self):
         self.tts_engine.say("my turn")
         self.tts_engine.runAndWait()
-        self.engine.go(movetime=self.stockfish_timeout, async_callback=True)        
+        self.engine.go(movetime=self.stockfish_timeout, async_callback=True)
 
     def read_move(self, move, score, mate):
         move_start, move_end = move.uci()[:2], move.uci()[2:]
