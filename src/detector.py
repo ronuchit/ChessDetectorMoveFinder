@@ -168,8 +168,10 @@ def main(chess):
         board = board[:, ::-1].T
         if not ran_stockfish:
             best_move, score, mate = chess.assisted_human_turn()
-            if best_move is not None:
-                print "\n\nSTOCKFISH RECOMMENDS: %s with a score of %f, mate = %s\n\n"%(best_move, score / 100.0, mate)
+            if best_move is not None and score is None:
+                print "\n\nSTOCKFISH RECOMMENDS: %s with mate in %s\n\n"%(best_move, mate)
+            elif best_move is not None:
+                print "\n\nSTOCKFISH RECOMMENDS: %s with a score of %f\n\n"%(best_move, score / 100.0)
             ran_stockfish = True
         move = obtain_moves(board, chess.board)
         if move is None:
